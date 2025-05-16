@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat AI Karakter - Gemini</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .typing-dot {
+        animation: typingDots 1.4s infinite both;
+      }
+      .typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes typingDots {
+        0%,
+        80%,
+        100% {
+          transform: scale(0);
+        }
+        40% {
+          transform: scale(1);
+        }
+      }
+      .message-enter {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+      }
+      .message-enter-active {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      .message-actions {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      .message-item:hover .message-actions {
+        opacity: 1;
+      }
+      .avatar-option {
+        transition: all 0.2s ease;
+      }
+      .avatar-option:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 2px #0ea5e9;
+      }
+      .avatar-option.selected {
+        box-shadow: 0 0 0 3px #0ea5e9;
+        transform: scale(1.05);
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body
+    class="bg-gradient-to-br from-slate-900 to-slate-800 text-slate-100 flex flex-col items-center justify-center min-h-screen p-4 selection:bg-sky-500 selection:text-white"
+  >
+    <!-- Character Creation Modal -->
+    <div
+      id="character-creation"
+      class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-slate-800 rounded-xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-700"
+      >
+        <h2 class="text-2xl font-bold text-center text-sky-400 mb-6">
+          Character Ai
+        </h2>
+
+        <div class="space-y-6">
+          <div>
+            <label
+              for="character-name-input"
+              class="block text-sm font-medium text-slate-300 mb-2"
+              >Nama Karakter</label
+            >
+            <input
+              type="text"
+              id="character-name-input"
+              placeholder="Misal: Luna, Arjuna, dll"
+              class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 placeholder-slate-400 text-slate-100"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2"
+              >Gender Karakter</label
+            >
+            <div class="flex space-x-4">
+              <label class="flex items-center">
+                <input
+                  type="radio"
+                  name="character-gender"
+                  value="female"
+                  class="h-4 w-4 text-sky-600 focus:ring-sky-500 border-slate-600"
+                  checked
+                />
+                <span class="ml-2 text-slate-300">Perempuan</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  type="radio"
+                  name="character-gender"
+                  value="male"
+                  class="h-4 w-4 text-sky-600 focus:ring-sky-500 border-slate-600"
+                />
+                <span class="ml-2 text-slate-300">Laki-laki</span>
+              </label>
+              <label class="flex items-center">
+                <input
+                  type="radio"
+                  name="character-gender"
+                  value="neutral"
+                  class="h-4 w-4 text-sky-600 focus:ring-sky-500 border-slate-600"
+                />
+                <span class="ml-2 text-slate-300">Netral</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2"
+              >Avatar Karakter</label
+            >
+            <div class="grid grid-cols-4 gap-3">
+              <!-- Avatar options -->
+              <div
+                class="avatar-option rounded-full overflow-hidden cursor-pointer"
+                data-avatar="1"
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=1"
+                  alt="Avatar 1"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div
+                class="avatar-option rounded-full overflow-hidden cursor-pointer"
+                data-avatar="2"
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=2"
+                  alt="Avatar 2"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div
+                class="avatar-option rounded-full overflow-hidden cursor-pointer"
+                data-avatar="3"
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=3"
+                  alt="Avatar 3"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div
+                class="avatar-option rounded-full overflow-hidden cursor-pointer"
+                data-avatar="4"
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=4"
+                  alt="Avatar 4"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div
+                class="avatar-option rounded-full overflow-hidden cursor-pointer"
+                data-avatar="5"
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=5"
+                  alt="Avatar 5"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div
+                class="avatar-option rounded-full overflow-hidden cursor-pointer"
+                data-avatar="6"
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=6"
+                  alt="Avatar 6"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div
+                class="avatar-option rounded-full overflow-hidden cursor-pointer"
+                data-avatar="7"
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=7"
+                  alt="Avatar 7"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div
+                class="avatar-option rounded-full overflow-hidden cursor-pointer"
+                data-avatar="8"
+              >
+                <img
+                  src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=8"
+                  alt="Avatar 8"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label
+              for="custom-avatar-upload"
+              class="block text-sm font-medium text-slate-300 mb-2"
+              >Atau Unggah Foto Sendiri</label
+            >
+            <input
+              type="file"
+              id="custom-avatar-upload"
+              accept="image/*"
+              class="w-full p-2 bg-slate-700 text-white rounded-md border border-slate-600"
+            />
+          </div>
+
+          <div class="pt-2">
+            <button
+              id="create-character-btn"
+              class="w-full bg-sky-600 text-white py-3 px-4 rounded-lg hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-800 transition-colors duration-150 font-medium"
+            >
+              Buat Karakter & Mulai Chat
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Container (Awalnya disembunyikan) -->
+    <div
+      id="chat-container"
+      class="hidden bg-slate-800 shadow-2xl shadow-sky-500/10 rounded-xl w-full max-w-2xl flex flex-col h-[90vh] md:h-[80vh] overflow-hidden border border-slate-700"
+    >
+      <header
+        class="bg-slate-700/50 backdrop-blur-md text-white p-4 sm:p-5 flex items-center justify-between border-b border-slate-700"
+      >
+        <div class="flex items-center space-x-3">
+          <img
+            id="character-avatar"
+            src=""
+            alt="Avatar Karakter"
+            class="cursor-pointer w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-sky-500 object-cover"
+          />
+
+          <div>
+            <h1
+              id="character-name"
+              class="text-lg sm:text-xl font-semibold text-sky-400"
+            ></h1>
+            <p
+              id="character-status"
+              class="text-xs sm:text-sm text-emerald-400"
+            >
+              Online
+            </p>
+          </div>
+        </div>
+
+        <button
+          id="clear-chat"
+          class="text-slate-300 hover:text-white p-2 rounded-full hover:bg-slate-700 transition-colors"
+          title="Hapus semua percakapan"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+        </button>
+      </header>
+
+      <div
+        id="chat-window"
+        class="flex-grow p-4 sm:p-6 space-y-4 overflow-y-auto scroll-smooth"
+      >
+        <!-- Pesan akan dimuat di sini -->
+      </div>
+
+      <div
+        id="typing-indicator"
+        class="p-4 sm:p-6 pt-0 text-sm text-slate-400 hidden"
+      >
+        <div class="flex items-center space-x-1">
+          <span class="italic" id="typing-text">AI sedang mengetik</span>
+          <div class="typing-dot w-2 h-2 bg-sky-400 rounded-full"></div>
+          <div class="typing-dot w-2 h-2 bg-sky-400 rounded-full"></div>
+          <div class="typing-dot w-2 h-2 bg-sky-400 rounded-full"></div>
+        </div>
+      </div>
+
+      <footer
+        class="bg-slate-800/60 backdrop-blur-md p-3 sm:p-4 border-t border-slate-700"
+      >
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <textarea
+            id="message-input"
+            rows="1"
+            placeholder="Ketik pesanmu di sini..."
+            class="flex-grow p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 placeholder-slate-400 text-slate-100 text-sm sm:text-base resize-none overflow-hidden"
+          ></textarea>
+
+          <button
+            id="send-button"
+            class="bg-sky-600 text-white px-5 py-3 rounded-lg hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 focus:ring-offset-slate-800 transition-colors duration-150 active:bg-sky-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                d="M3.105 3.105a.5.5 0 01.815-.093l12 8a.5.5 0 010 .874l-12 8a.5.5 0 01-.815-.782L14.39 10 3.105 3.885a.5.5 0 010-.78z"
+              />
+            </svg>
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      const customAvatarInput = document.getElementById("custom-avatar-upload");
+
+      customAvatarInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            currentCharacter.avatar = event.target.result;
+
+            // Hapus pilihan avatar default
+            document
+              .querySelectorAll(".avatar-option")
+              .forEach((el) => el.classList.remove("selected"));
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Karakter default
+      let currentCharacter = {
+        name: "Gemini AI",
+        gender: "neutral",
+        avatar: "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=default",
+      };
+
+      // Inisialisasi UI
+      document.addEventListener("DOMContentLoaded", function () {
+        // Pilih avatar
+        const avatarOptions = document.querySelectorAll(".avatar-option");
+        let selectedAvatar = "1"; // Default
+
+        avatarOptions.forEach((option) => {
+          option.addEventListener("click", function () {
+            avatarOptions.forEach((opt) => opt.classList.remove("selected"));
+            this.classList.add("selected");
+            selectedAvatar = this.dataset.avatar;
+          });
+        });
+
+        // Pilih avatar pertama secara default
+        avatarOptions[0].classList.add("selected");
+
+        // Buat karakter
+        document
+          .getElementById("create-character-btn")
+          .addEventListener("click", function () {
+            const nameInput = document.getElementById("character-name-input");
+            const characterName = nameInput.value.trim();
+
+            if (!characterName) {
+              alert("Silakan masukkan nama karakter terlebih dahulu!");
+              nameInput.focus();
+              return;
+            }
+
+            // Simpan data karakter
+            const gender = document.querySelector(
+              'input[name="character-gender"]:checked'
+            ).value;
+            currentCharacter = {
+              name: characterName,
+              gender: gender,
+              avatar:
+                currentCharacter.avatar ||
+                `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${selectedAvatar}`,
+            };
+
+            // Update UI chat
+            document.getElementById("character-name").textContent =
+              currentCharacter.name;
+            document.getElementById("character-avatar").src =
+              currentCharacter.avatar;
+            document.getElementById(
+              "typing-text"
+            ).textContent = `${currentCharacter.name} sedang mengetik`;
+
+            // Sembunyikan modal dan tampilkan chat
+            document.getElementById("character-creation").style.display =
+              "none";
+            document
+              .getElementById("chat-container")
+              .classList.remove("hidden");
+
+            // Buat prompt berdasarkan gender
+            let genderPrompt = "";
+            if (gender === "female") {
+              genderPrompt =
+                "Bersikaplah seperti perempuan yang ramah dan sopan.";
+            } else if (gender === "male") {
+              genderPrompt =
+                "Bersikaplah seperti laki-laki yang ramah dan sopan.";
+            } else {
+              genderPrompt = "Bersikaplah ramah dan sopan.";
+            }
+
+            // Inisialisasi percakapan
+            conversationHistory = [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: `Kamu adalah asisten AI yang bernama '${currentCharacter.name}'. ${genderPrompt} Jawablah dalam bahasa Indonesia kecuali diminta untuk menggunakan bahasa lain.`,
+                  },
+                ],
+              },
+              {
+                role: "model",
+                parts: [
+                  {
+                    text: `Halo! Saya ${currentCharacter.name}, asisten AI yang siap membantu Anda. Ada yang bisa saya bantu hari ini?`,
+                  },
+                ],
+              },
+            ];
+
+            // Tampilkan pesan sambutan
+            const chatWindow = document.getElementById("chat-window");
+            chatWindow.innerHTML = "";
+            displayMessage(conversationHistory[1].parts[0].text, "ai");
+          });
+      });
+
+      // Referensi Elemen DOM Chat
+      const chatWindow = document.getElementById("chat-window");
+      const messageInput = document.getElementById("message-input");
+      const sendButton = document.getElementById("send-button");
+      const typingIndicator = document.getElementById("typing-indicator");
+      const clearChatButton = document.getElementById("clear-chat");
+
+      // API KEY GEMINI ANDA.
+      // PERINGATAN: JANGAN PERNAH MENYIMPAN API KEY LANGSUNG DI KODE FRONTEND UNTUK APLIKASI PRODUKSI!
+      const GEMINI_API_KEY = "AIzaSyC8jy1kdr27LqbnDxjKIDNKJNOKEndGHc8"; // Ganti dengan API key Anda yang sebenarnya
+      const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+      let conversationHistory = [];
+
+      // Event listeners
+      sendButton.addEventListener("click", sendMessage);
+      messageInput.addEventListener("input", function () {
+        this.style.height = "auto";
+        this.style.height = this.scrollHeight + "px";
+      });
+
+      clearChatButton.addEventListener("click", clearChat);
+
+      // Fungsi untuk menampilkan pesan di UI
+      function displayMessage(
+        text,
+        sender,
+        isError = false,
+        messageId = Date.now()
+      ) {
+        const messageWrapper = document.createElement("div");
+        messageWrapper.classList.add("flex", "message-item", "group");
+        messageWrapper.dataset.messageId = messageId;
+
+        // Container untuk pesan dan actions
+        const messageContainer = document.createElement("div");
+        messageContainer.classList.add("relative");
+
+        // Pesan utama
+        const messageElement = document.createElement("div");
+        messageElement.classList.add(
+          "p-3",
+          "rounded-lg",
+          "max-w-xs",
+          "sm:max-w-md",
+          "shadow",
+          "message-enter"
+        );
+        messageElement.textContent = text;
+
+        if (sender === "user") {
+          messageWrapper.classList.add("justify-end");
+          messageElement.classList.add(
+            "bg-sky-600",
+            "text-white",
+            "rounded-br-none"
+          );
+
+          // Actions untuk pesan user (edit dan delete)
+          const actionsDiv = document.createElement("div");
+          actionsDiv.classList.add(
+            "message-actions",
+            "flex",
+            "space-x-2",
+            "mt-2",
+            "justify-end"
+          );
+
+          const editButton = document.createElement("button");
+          editButton.classList.add(
+            "text-slate-400",
+            "hover:text-sky-400",
+            "p-1"
+          );
+          editButton.innerHTML =
+            '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>';
+          editButton.title = "Edit pesan";
+          editButton.addEventListener("click", () =>
+            editMessage(messageId, text)
+          );
+
+          const deleteButton = document.createElement("button");
+          deleteButton.classList.add(
+            "text-slate-400",
+            "hover:text-red-400",
+            "p-1"
+          );
+          deleteButton.innerHTML =
+            '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>';
+          deleteButton.title = "Hapus pesan";
+          deleteButton.addEventListener("click", () =>
+            deleteMessage(messageId)
+          );
+
+          actionsDiv.appendChild(editButton);
+          actionsDiv.appendChild(deleteButton);
+          messageContainer.appendChild(actionsDiv);
+        } else {
+          messageWrapper.classList.add("justify-start");
+          if (isError) {
+            messageElement.classList.add(
+              "bg-red-500",
+              "text-white",
+              "rounded-bl-none"
+            );
+          } else {
+            messageElement.classList.add(
+              "bg-slate-700",
+              "text-slate-200",
+              "rounded-bl-none"
+            );
+          }
+        }
+
+        messageContainer.appendChild(messageElement);
+        messageWrapper.appendChild(messageContainer);
+        chatWindow.appendChild(messageWrapper);
+
+        // Animasi masuk
+        requestAnimationFrame(() => {
+          messageElement.classList.add("message-enter-active");
+        });
+
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        return messageId;
+      }
+
+      // Fungsi untuk mengedit pesan
+      async function editMessage(messageId, currentText) {
+        const newText = prompt("Edit pesan:", currentText);
+        if (newText !== null && newText !== currentText) {
+          // Update tampilan pesan user
+          const userMessageElement = document.querySelector(
+            `.message-item[data-message-id="${messageId}"] div[class*="bg-sky-600"]`
+          );
+          if (userMessageElement) {
+            userMessageElement.textContent = newText;
+          }
+
+          // Cari index pesan user lama
+          const userIndex = conversationHistory.findIndex(
+            (msg) => msg.role === "user" && msg.parts[0].text === currentText
+          );
+
+          if (userIndex !== -1) {
+            // Update history
+            conversationHistory[userIndex].parts[0].text = newText;
+
+            // Hapus pesan AI setelah pesan user
+            if (conversationHistory[userIndex + 1]?.role === "model") {
+              conversationHistory.splice(userIndex + 1, 1);
+
+              // Hapus dari tampilan
+              const nextMessageElement = document.querySelector(
+                `.message-item[data-message-id="${messageId}"] + .message-item`
+              );
+              if (nextMessageElement) {
+                nextMessageElement.remove();
+              }
+            }
+
+            // Kirim ulang pesan baru ke AI
+            typingIndicator.classList.remove("hidden");
+
+            try {
+              const payload = {
+                contents: conversationHistory,
+                generationConfig: {
+                  temperature: 0.7,
+                  maxOutputTokens: 1000,
+                },
+                safetySettings: [
+                  {
+                    category: "HARM_CATEGORY_HARASSMENT",
+                    threshold: "BLOCK_ONLY_HIGH",
+                  },
+                  {
+                    category: "HARM_CATEGORY_HATE_SPEECH",
+                    threshold: "BLOCK_ONLY_HIGH",
+                  },
+                  {
+                    category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    threshold: "BLOCK_ONLY_HIGH",
+                  },
+                  {
+                    category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    threshold: "BLOCK_ONLY_HIGH",
+                  },
+                ],
+              };
+
+              const response = await fetch(GEMINI_API_URL, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              });
+
+              const data = await response.json();
+              const aiResponse =
+                data.candidates?.[0]?.content?.parts?.[0]?.text ||
+                "Maaf, saya tidak dapat memberikan respons saat ini.";
+
+              displayMessage(aiResponse, "ai");
+              conversationHistory.splice(userIndex + 1, 0, {
+                role: "model",
+                parts: [{ text: aiResponse }],
+              });
+            } catch (error) {
+              console.error("Error:", error);
+              displayMessage(`Terjadi kesalahan: ${error.message}`, "ai", true);
+            } finally {
+              typingIndicator.classList.add("hidden");
+            }
+          }
+        }
+      }
+
+      // Fungsi untuk menghapus pesan
+      function deleteMessage(messageId) {
+        if (confirm("Apakah Anda yakin ingin menghapus pesan ini?")) {
+          const messageElement = document.querySelector(
+            `.message-item[data-message-id="${messageId}"]`
+          );
+          if (messageElement) {
+            // Dapatkan teks pesan untuk dihapus dari history
+            const messageText = messageElement.querySelector(
+              'div[class*="bg-sky-600"], div[class*="bg-slate-700"]'
+            ).textContent;
+
+            // Hapus dari DOM
+            messageElement.remove();
+
+            // Hapus dari conversation history
+            conversationHistory = conversationHistory.filter(
+              (msg) =>
+                !(msg.role === "user" && msg.parts[0].text === messageText)
+            );
+          }
+        }
+      }
+
+      // Fungsi untuk menghapus semua chat
+      function clearChat() {
+        if (confirm("Apakah Anda yakin ingin menghapus semua percakapan?")) {
+          // Hapus semua pesan dari tampilan
+          chatWindow.innerHTML = "";
+
+          // Reset conversation history dengan prompt awal
+          conversationHistory = [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `Kamu adalah asisten AI yang bernama '${
+                    currentCharacter.name
+                  }'. ${
+                    currentCharacter.gender === "female"
+                      ? "Bersikaplah seperti perempuan yang ramah dan sopan."
+                      : currentCharacter.gender === "male"
+                      ? "Bersikaplah seperti laki-laki yang ramah dan sopan."
+                      : "Bersikaplah ramah dan sopan."
+                  } Jawablah dalam bahasa Indonesia kecuali diminta untuk menggunakan bahasa lain.`,
+                },
+              ],
+            },
+          ];
+
+          // Tampilkan pesan sambutan baru
+          displayMessage(
+            `Halo! Saya ${currentCharacter.name}, asisten AI yang siap membantu Anda. Ada yang bisa saya bantu hari ini?`,
+            "ai"
+          );
+          conversationHistory.push({
+            role: "model",
+            parts: [
+              {
+                text: `Halo! Saya ${currentCharacter.name}, asisten AI yang siap membantu Anda. Ada yang bisa saya bantu hari ini?`,
+              },
+            ],
+          });
+        }
+      }
+
+      // Fungsi untuk mengirim pesan
+      async function sendMessage() {
+        const messageText = messageInput.value.trim();
+        if (messageText === "") return;
+
+        const messageId = displayMessage(messageText, "user");
+        conversationHistory.push({
+          role: "user",
+          parts: [{ text: messageText }],
+        });
+        messageInput.value = "";
+        messageInput.focus();
+
+        typingIndicator.classList.remove("hidden");
+
+        try {
+          const payload = {
+            contents: conversationHistory,
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1000,
+            },
+            safetySettings: [
+              {
+                category: "HARM_CATEGORY_HARASSMENT",
+                threshold: "BLOCK_ONLY_HIGH",
+              },
+              {
+                category: "HARM_CATEGORY_HATE_SPEECH",
+                threshold: "BLOCK_ONLY_HIGH",
+              },
+              {
+                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                threshold: "BLOCK_ONLY_HIGH",
+              },
+              {
+                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                threshold: "BLOCK_ONLY_HIGH",
+              },
+            ],
+          };
+
+          const response = await fetch(GEMINI_API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            const errorMessage =
+              data.error?.message ||
+              data[0]?.error?.message ||
+              "Gagal mendapatkan respons dari API";
+            throw new Error(errorMessage);
+          }
+
+          const aiResponse =
+            data.candidates?.[0]?.content?.parts?.[0]?.text ||
+            data.candidates?.[0]?.content?.parts?.[0]?.functionCall?.name ||
+            "Maaf, saya tidak dapat memberikan respons saat ini.";
+
+          displayMessage(aiResponse, "ai");
+          conversationHistory.push({
+            role: "model",
+            parts: [{ text: aiResponse }],
+          });
+        } catch (error) {
+          console.error("Error:", error);
+          displayMessage(`Terjadi kesalahan: ${error.message}`, "ai", true);
+
+          if (
+            error.message.includes("API key") ||
+            error.message.includes("authentication")
+          ) {
+            displayMessage(
+              "Pastikan API key Anda valid dan memiliki akses ke Gemini API.",
+              "ai",
+              true
+            );
+          }
+        } finally {
+          typingIndicator.classList.add("hidden");
+        }
+      }
+
+      // Ketika avatar diklik, buka kembali pengaturan profil (modal)
+      document
+        .getElementById("character-avatar")
+        .addEventListener("click", function () {
+          document.getElementById("chat-container").classList.add("hidden");
+          document.getElementById("character-creation").style.display = "flex";
+          document.getElementById("character-name-input").value =
+            currentCharacter.name;
+        });
+    </script>
+  </body>
+</html>
